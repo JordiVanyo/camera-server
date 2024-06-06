@@ -10,17 +10,22 @@
     "@types/node": "^16.18.98",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "express": "^4.19.2",
+    "express-ws": "^5.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+    "rtsp-relay": "^1.9.0",
+    "web-vitals": "^2.1.4",
+    "ws": "^8.17.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "compile-docs": "babel src/CameraIP.tsx --out-dir compiled-docs",
+    "doc": "npm run compile-docs && jsdoc -c jsdoc.json compiled-docs/CameraIP.js"
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +44,24 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "devDependencies": {
+    "@babel/cli": "^7.24.7",
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-react": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "jsdoc-tsimport-plugin": "^1.0.5",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "keywords": [
+    "WebRTC",
+    "cameraIP"
+  ],
+  "author": "Jordi Vañó Llopis",
+  "license": "ISC"
 }

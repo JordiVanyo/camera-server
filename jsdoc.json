@@ -1,0 +1,13 @@
+{
+    "plugins": ["node_modules/jsdoc-tsimport-plugin"],
+    "source": {
+      "include": ["compiled-docs/CameraIP.js"],
+      "includePattern": ".+\\.js?$",
+      "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {
+      "destination": "docs",
+      "recurse": true,
+      "verbose": true
+    }
+  }
