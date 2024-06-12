@@ -1,5 +1,7 @@
-// import { resolve } from "path";
+import { create } from "domain";
 import React, { useEffect, useRef } from "react";
+import { createWebSocket } from "./webSocket";
+import { createPeerConnection, handleWebRTCMessage } from "./webRTC";
 
 /**
  * IPCamera component
@@ -10,11 +12,12 @@ import React, { useEffect, useRef } from "react";
  * @component
  * @example
  * return (
- *   <IPCamera />
+ *   <CameraIP />
  * )
  */
 function CameraIP() {
-    const videoRef = useRef<HTMLVideoElement>(null);    // Reference to <video> element
+    // Reference to <video> element
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         /**
@@ -24,13 +27,15 @@ function CameraIP() {
         async function startStreaming() {
             if (videoRef.current) {
                 try {
+                    // Get the video stream from the IP camera
                     const stream = await getCameraStream();
+                    // Assign the stream to the video element
                     videoRef.current.srcObject = stream;
                 } catch (error) {
                     console.error('Error accessing camera stream: ', error);
                 }
             }
-        };
+        }
 
         startStreaming();
     }, []);
@@ -42,46 +47,41 @@ function CameraIP() {
      * @returns {Promise<MediaStream>} A promise that resolves to the MediaStream object of the video.
      */
     async function getCameraStream(): Promise<MediaStream> {
-        const peerConnection = new RTCPeerConnection(); // Creates a WebRTC connection
-        const webSocket = new WebSocket('ws://localhost:2000/api/stream'); // Connects with the websocket 
+        // Connects with the WebSocket server
+        const webSocket = createWebSocket('ws://localhost:2000/api/stream');
+        // Creates a WebRTC connection
+        const peerConnection = await createPeerConnection(webSocket);
 
-        // Manage messages received from the websocket
-        webSocket.onmessage = (event) => {
-            const message = JSON.parse(event.data);
 
-            if (message.answer) {
-                peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
-            } else if (message.iceCandidate) {
-                peerConnection.addIceCandidate(new RTCIceCandidate(message.iceCandidate));
-            }
-        };
+        return new Promise<MediaStream>((resolve, reject) => {
+            // Handle messages received from the WebSocket
+            webSocket.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleWebRTCMessage(peerConnection, message);
+                } catch (error) {
+                    console.error('Error parsing JSON message: ', event.data, error);
+                }
+            };
 
-        // Send ICE candidates to the websocket
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                webSocket.send(JSON.stringify({ iceCandidate: event.candidate }));
-            }
-        };
-
-        // Create an offer and set it as the local description
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-
-        // Send the offer to the websocket
-        webSocket.onopen = () => {
-            webSocket.send(JSON.stringify({ offer: offer }));
-        };
-
-        // Return a promise that resolves to the MediaStream once a track is received
-        return new Promise<MediaStream>((resolve) => {
+            // Resolve the promise when a track is received
             peerConnection.ontrack = (event) => {
                 resolve(event.streams[0]);
             };
+
+            // Handle ICE connection state changes
+            peerConnection.oniceconnectionstatechange = () => {
+                if (peerConnection.iceConnectionState === 'failed' || peerConnection.iceConnectionState === 'disconnected') {
+                    reject(new Error('ICE connection failed'));
+                }
+            };
+
         });
     };
 
     return (
         <div>
+            {/* Video element to display the IP camera stream */}
             <video ref={videoRef} autoPlay controls />
         </div>
     );

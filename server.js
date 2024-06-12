@@ -22,7 +22,7 @@ expressWs(app);         // Allow the use of WebSockets to the express app
  * @param {boolean} verbose - If true, logs detailed information to the console.
  */
 app.ws('/api/stream', proxy({
-    url: 'rtsp://user:pass@ip/stream-path', // URL of the IP Camera
+    url: 'http://user:password@ip:port/Streaming/channels/1/picture', // URL of the IP Camera
     verbose: false, // Show detailed information
 }));
 
